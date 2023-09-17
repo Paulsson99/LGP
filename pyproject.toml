@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "LGP"
+version = "0.0.1"
+authors = [
+  { name="Simon Paulsson", email="simon@paulsson.one" },
+]
+description = "A module for Linear Genetic Programming"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "tqdm",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/Paulsson99/LGP"
+"Bug Tracker" = "https://github.com/Paulsson99/LGP/issues"
