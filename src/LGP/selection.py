@@ -30,6 +30,8 @@ class TournamentSelection(SelectionBase):
     """
 
     def __init__(self, pTour: float, size: int = 2) -> None:
+        super().__init__()
+        
         assert 0.0 <= pTour <= 1.0
         assert size > 0
         
