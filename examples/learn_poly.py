@@ -6,8 +6,9 @@ from LGP.fitness import MimicTrainingData
 from LGP.selection import TournamentSelection
 from LGP.crossover import TwoPointCrossover
 from LGP.mutation import InstructionMutation
-from LGP.evaluation import Operators
+from LGP.evaluation import Operators, evaluate
 from LGP.population import random_population
+from LGP._typing import Chromosome
 
 
 # Params
@@ -29,7 +30,7 @@ GENERATIONS = 3000
 pTour = 0.8
 tournament_size = 4
 pCross = 0.6
-pMutate = 0.07
+pMutate = 0.1
 
 
 # Create the training data
@@ -40,7 +41,8 @@ y = np.polyval(p, x)
 # Inspect the training data
 fig, ax = plt.subplots()
 ax.plot(x, y)
-plt.show()
+best_line, = ax.plot(x, [0] * len(x), 'r--')
+plt.show(block=False)
 
 # Set up the training loop
 fitness_func = MimicTrainingData(x, y, nVar=NVAR, constReg=CONST_REG, operators=OPS)
@@ -56,6 +58,18 @@ population = random_population(
     nOp=NOPS,
 )
 
+# Update function for the plot
+def update(chromosome: Chromosome):
+    y = []
+    for xp in x:
+        varReg = [float(xp[0])] + [0] * (NVAR - 1)
+        out = evaluate(chromosome, OPS, varReg, CONST_REG)
+        y.append(out[0])
+    best_line.set_ydata(y)
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+
+
 lgp = LGP(
     population=population,
     selection_method=selection,
@@ -65,5 +79,7 @@ lgp = LGP(
     minimize=True,
     elitism=True,
 )
+
+lgp.add_new_best_callback(update)
 
 lgp.run(GENERATIONS)

@@ -1,6 +1,6 @@
 from tqdm import trange
 import numpy as np
-from typing import Optional
+from typing import Optional, Callable, Self
 import operator
 
 from ._typing import Chromosome
@@ -52,6 +52,16 @@ class LGP:
         self.avg_fitness_log = []
         self.best_fitness_log = []
 
+        # Callbacks
+        self.new_best_callback: list[Callable[[Chromosome], None]] = []
+        self.generation_callback: list[Callable[[Self], None]] = []
+
+    def add_new_best_callback(self, callback: Callable[[Chromosome], None]) -> None:
+        self.new_best_callback.append(callback)
+
+    def add_generation_callback(self, callback: Callable[[Self], None]) -> None:
+        self.generation_callback.append(callback)
+
     def _log(self, fitness: list[float]) -> None:
         """
         Log the results
@@ -69,6 +79,9 @@ class LGP:
         if self.all_time_best_fitness is None or fitness_comparison(self.best_fitness, self.all_time_best_fitness):
             self.all_time_best_fitness = self.best_fitness
             self.all_time_best_individual = self.best_individual
+
+            for callback in self.new_best_callback:
+                callback(self.all_time_best_individual)
 
         # Save info to logs
         avg_fitness = np.mean(fitness)
@@ -115,5 +128,8 @@ class LGP:
                 new_population.append(offspring2)
 
             self.population = new_population
+
+            for callback in self.generation_callback:
+                callback(self)
         
         return self.all_time_best_individual

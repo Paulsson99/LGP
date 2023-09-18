@@ -48,8 +48,8 @@ class MimicTrainingData(FitnessBase):
         for individual in populaiton:
             tot_error = 0
             for xp, yp in zip(self.x, self.y):
-                varReg = [xp[i] if i < self.input_len else 0.0 for i in range(self.nVar)]
-                yh = evaluate(individual, self.operators, varReg, self.constReg)
+                varReg = [float(xp[i]) if i < self.input_len else 0.0 for i in range(self.nVar)]
+                yh = evaluate(individual, self.operators, varReg, self.constReg)[:self.output_len]
 
                 diff = yp - yh
                 error = np.sqrt(np.sum(diff * diff))
