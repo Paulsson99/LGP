@@ -3,10 +3,11 @@ import numpy as np
 from typing import Optional
 import operator
 
-from ._typing import Chromosome, Fitness
+from ._typing import Chromosome
 from LGP.selection import SelectionBase
 from LGP.crossover import CrossoverBase
 from LGP.mutation import MutationBase
+from LGP.fitness import FitnessBase
 
 
 class LGP:
@@ -28,7 +29,7 @@ class LGP:
             selection_method: SelectionBase,
             crossover_method: CrossoverBase,
             mutation_method: MutationBase,
-            fitness_func: Fitness,
+            fitness_func: FitnessBase,
             minimize: bool = False,
             elitism: bool = False,
     ) -> None:
@@ -50,17 +51,6 @@ class LGP:
 
         self.avg_fitness_log = []
         self.best_fitness_log = []
-
-    def _calc_fitness(self) -> list[float]:
-        """
-        Calculate the fitness function for every individual
-        """
-        fitness = []
-        for individual in self.population:
-            f = self.fitness_func(individual)
-            fitness.append(f)
-        return fitness
-
 
     def _log(self, fitness: list[float]) -> None:
         """
@@ -89,7 +79,7 @@ class LGP:
         pbar = trange(generations, desc="Best fitness: ???")
 
         for g in pbar:
-            fitness = self._calc_fitness()
+            fitness = self.fitness_func(self.population)
             self._log(fitness)
             pbar.desc = f"Best fitness: {self.all_time_best_fitness:0.2f}"
             

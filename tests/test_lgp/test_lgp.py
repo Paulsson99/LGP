@@ -5,6 +5,7 @@ from LGP._typing import Chromosome
 from LGP.selection import SelectionBase
 from LGP.crossover import CrossoverBase
 from LGP.mutation import MutationBase
+from LGP.fitness import FitnessBase
 
 
 class NoMutation(MutationBase):
@@ -19,8 +20,9 @@ class NoCrossover(CrossoverBase):
     def crossover(self, parent1: Chromosome, parent2: Chromosome) -> tuple[Chromosome, Chromosome]:
         return parent1, parent2
 
-def fitness_func(chromosome: Chromosome) -> float:
-    return len(chromosome)
+class LenFitness(FitnessBase):
+    def __call__(self, populaiton: list[Chromosome]) -> list[float]:
+        return [len(individual) for individual in populaiton]
 
 
 def test_log_maximize():
@@ -29,7 +31,7 @@ def test_log_maximize():
         selection_method=MaxSelection(),
         crossover_method=NoCrossover(),
         mutation_method=NoMutation(),
-        fitness_func=fitness_func,
+        fitness_func=LenFitness(),
         minimize=False,
     )
 
@@ -58,7 +60,7 @@ def test_log_minimize():
         selection_method=MaxSelection(),
         crossover_method=NoCrossover(),
         mutation_method=NoMutation(),
-        fitness_func=fitness_func,
+        fitness_func=LenFitness(),
         minimize=True,
     )
 
