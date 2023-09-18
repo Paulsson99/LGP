@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import numpy as np
+from multiprocessing import Pool
 
 from LGP._typing import Chromosome, Operator
 from LGP.evaluation import evaluate
@@ -59,3 +60,26 @@ class MimicTrainingData(FitnessBase):
             fitness.append(tot_error / self.training_samples)
         
         return fitness
+
+
+class MimicTrainingDataMultiProcessing(MimicTrainingData):
+
+    def __init__(self, x: np.ndarray, y: np.ndarray, nVar: int, constReg: list[float], operators: list[Operator], workers: int = 4) -> None:
+        super().__init__(x, y, nVar, constReg, operators)
+        self.workers = workers
+
+    def fitness(self, individual: Chromosome) -> float:
+        tot_error = 0
+        for xp, yp in zip(self.x, self.y):
+            varReg = [float(xp[i]) if i < self.input_len else 0.0 for i in range(self.nVar)]
+            yh = evaluate(individual, self.operators, varReg, self.constReg)[:self.output_len]
+
+            diff = yp - yh
+            error = np.sqrt(np.sum(diff * diff))
+
+            tot_error += error
+        return tot_error / self.training_samples
+
+    def __call__(self, populaiton: list[Chromosome]) -> list[float]:
+        with Pool(processes=self.workers) as pool:
+            return pool.map(self.fitness, populaiton)

@@ -34,52 +34,62 @@ pMutate = 0.1
 
 
 # Create the training data
-p = [1, 4, -10, -7]
-x = np.linspace(-5, 5).reshape((-1, 1))
-y = np.polyval(p, x)
-
-# Inspect the training data
-fig, ax = plt.subplots()
-ax.plot(x, y)
-best_line, = ax.plot(x, [0] * len(x), 'r--')
-plt.show(block=False)
-
-# Set up the training loop
-fitness_func = MimicTrainingData(x, y, nVar=NVAR, constReg=CONST_REG, operators=OPS)
-selection = TournamentSelection(pTour=pTour, size=tournament_size)
-crossover = TwoPointCrossover(pCross=pCross, max_length=2 * MAX_LEN)
-mutation = InstructionMutation(pMutate=pMutate, nVar=NVAR, nConst=NCONST, nOp=NOPS)
-population = random_population(
-    population_size=POPULATION_SIZE,
-    min_size=MIN_LEN,
-    max_size=MAX_LEN,
-    nVar=NVAR,
-    nConst=NCONST,
-    nOp=NOPS,
-)
-
-# Update function for the plot
-def update(chromosome: Chromosome):
-    y = []
-    for xp in x:
-        varReg = [float(xp[0])] + [0] * (NVAR - 1)
-        out = evaluate(chromosome, OPS, varReg, CONST_REG)
-        y.append(out[0])
-    best_line.set_ydata(y)
-    fig.canvas.draw()
-    fig.canvas.flush_events()
+def training_data():
+    p = [1, 4, -10, -7]
+    x = np.linspace(-5, 5).reshape((-1, 1))
+    y = np.polyval(p, x)
+    return x, y
 
 
-lgp = LGP(
-    population=population,
-    selection_method=selection,
-    crossover_method=crossover,
-    mutation_method=mutation,
-    fitness_func=fitness_func,
-    minimize=True,
-    elitism=True,
-)
+def main():
+    x, y = training_data()
 
-lgp.add_new_best_callback(update)
+    # Inspect the training data
+    fig, ax = plt.subplots()
+    ax.plot(x, y)
+    best_line, = ax.plot(x, [0] * len(x), 'r--')
+    plt.show(block=False)
 
-lgp.run(GENERATIONS)
+    # Set up the training loop
+    fitness_func = MimicTrainingData(x, y, nVar=NVAR, constReg=CONST_REG, operators=OPS)
+    selection = TournamentSelection(pTour=pTour, size=tournament_size)
+    crossover = TwoPointCrossover(pCross=pCross, max_length=2 * MAX_LEN)
+    mutation = InstructionMutation(pMutate=pMutate, nVar=NVAR, nConst=NCONST, nOp=NOPS)
+    population = random_population(
+        population_size=POPULATION_SIZE,
+        min_size=MIN_LEN,
+        max_size=MAX_LEN,
+        nVar=NVAR,
+        nConst=NCONST,
+        nOp=NOPS,
+    )
+
+    # Update function for the plot
+    def update(chromosome: Chromosome):
+        y = []
+        for xp in x:
+            varReg = [float(xp[0])] + [0] * (NVAR - 1)
+            out = evaluate(chromosome, OPS, varReg, CONST_REG)
+            y.append(out[0])
+        best_line.set_ydata(y)
+        fig.canvas.draw()
+        fig.canvas.flush_events()
+
+
+    lgp = LGP(
+        population=population,
+        selection_method=selection,
+        crossover_method=crossover,
+        mutation_method=mutation,
+        fitness_func=fitness_func,
+        minimize=True,
+        elitism=True,
+    )
+
+    lgp.add_new_best_callback(update)
+
+    lgp.run(GENERATIONS)
+
+
+if __name__ == '__main__':
+    main()

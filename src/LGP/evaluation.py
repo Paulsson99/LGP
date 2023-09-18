@@ -4,14 +4,40 @@ from ._typing import Operator, Chromosome
 
 
 class Operators:
-    Add: Operator = lambda x, y: x + y
-    Sub: Operator = lambda x, y: x - y
-    Mult: Operator = lambda x, y: x * y
-    Div: Operator = lambda x, y: x / y if y != 0 else 10_000_000
-    Sin: Operator = lambda x, y: math.sin(x)
-    Cos: Operator = lambda x, y: math.cos(x)
-    Sqrt: Operator = lambda x, y: math.sqrt(abs(x))
-    Atan2: Operator = lambda x, y: math.atan2(y, x)
+
+    @staticmethod
+    def Add(x: float, y: float) -> float:
+        return x + y
+
+    @staticmethod
+    def Sub(x: float, y: float) -> float:
+        return x - y
+
+    @staticmethod
+    def Mult(x: float, y: float) -> float:
+        return x * y
+
+    @staticmethod
+    def Div(x: float, y: float) -> float:
+        if y == 0:
+            return 10_000_000
+        return x / y
+
+    @staticmethod
+    def Sin(x: float, y: float) -> float:
+        return math.sin(x)
+
+    @staticmethod
+    def Cos(x: float, y: float) -> float:
+        return math.cos(x)
+
+    @staticmethod
+    def Sqrt(x: float, y: float) -> float:
+        return math.sqrt(abs(x))
+
+    @staticmethod
+    def Atan2(x: float, y: float) -> float:
+        return math.atan2(y, x)
 
 
 class Register:
