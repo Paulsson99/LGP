@@ -29,6 +29,7 @@ class MimicTrainingData(FitnessBase):
 
         assert x.shape[0] == y.shape[0]
 
+        self.training_samples = x.shape[0]
         self.input_len = x.shape[1]
         self.output_len = y.shape[1]
         assert self.input_len <= nVar
@@ -55,6 +56,6 @@ class MimicTrainingData(FitnessBase):
 
                 tot_error += error
             
-            fitness.append(tot_error)
+            fitness.append(tot_error / self.training_samples)
         
         return fitness

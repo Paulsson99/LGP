@@ -41,7 +41,6 @@ class TournamentSelection(SelectionBase):
     def select(self, fitness: list[float]) -> int:
         # Select the individuals to participate in the tournament
         tournament_indecies = random.choices(range(len(fitness)), k=self.size)
-        print(tournament_indecies)
 
         # Sort them according to fitness (best last)
         tournament_indecies.sort(key=lambda i: fitness[i])
