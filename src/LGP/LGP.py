@@ -21,6 +21,8 @@ class LGP:
     - mutation_method:      Instance of a Mutation class
     - fitness_func:         Fitness function
     - minimize (bool):      True if the algorithm should minimize the fitness function
+    - elitism (bool):       Turn on elitism
+    - len_punishment:       Punish long chromosomes. This parameter decides how much better a chromosome that is twice as long must be to be considered equal
     """
 
     def __init__(
@@ -32,6 +34,7 @@ class LGP:
             fitness_func: FitnessBase,
             minimize: bool = False,
             elitism: bool = False,
+            len_punishment: float = 0.0,
     ) -> None:
         self.population = population
         self.selection_method = selection_method
@@ -40,6 +43,7 @@ class LGP:
         self.fitness_func = fitness_func
         self.minimize = minimize
         self.elitism = elitism
+        self.len_punishment = len_punishment
 
         self.population_size = len(population)
 
@@ -107,6 +111,9 @@ class LGP:
             # Negate the fitness if minimize is true
             if self.minimize:
                 fitness = [-f for f in fitness]
+
+            # Add some punishment for longer chromosomes
+            fitness = [f - self.len_punishment * len(c) for f, c in zip(fitness, self.population)]
 
             while len(new_population) < self.population_size:
                 # Select parents
