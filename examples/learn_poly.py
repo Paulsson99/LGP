@@ -5,7 +5,7 @@ from LGP.LGP import LGP
 from LGP.fitness import MimicTrainingData
 from LGP.selection import TournamentSelection
 from LGP.crossover import TwoPointCrossover
-from LGP.mutation import InstructionMutation
+from LGP.mutation import InstructionMutation, InsertMutation, DeleteMutation, MultipleMutations
 from LGP.evaluation import Operators, evaluate
 from LGP.population import random_population
 from LGP._typing import Chromosome
@@ -30,7 +30,9 @@ GENERATIONS = 3000
 pTour = 0.8
 tournament_size = 4
 pCross = 0.6
-pMutate = 0.1
+pMutate = 0.07
+pInsert = 0.02
+pDelete = 0.02
 
 
 # Create the training data
@@ -54,7 +56,11 @@ def main():
     fitness_func = MimicTrainingData(x, y, nVar=NVAR, constReg=CONST_REG, operators=OPS)
     selection = TournamentSelection(pTour=pTour, size=tournament_size)
     crossover = TwoPointCrossover(pCross=pCross, max_length=2 * MAX_LEN)
-    mutation = InstructionMutation(pMutate=pMutate, nVar=NVAR, nConst=NCONST, nOp=NOPS)
+    instruction_mutation = InstructionMutation(pMutate=pMutate, nVar=NVAR, nConst=NCONST, nOp=NOPS)
+    insert_mutation = InsertMutation(pInsert=pInsert, nVar=NVAR, nConst=NCONST, nOp=NOPS)
+    delete_mutation = DeleteMutation(pDelete=pDelete, nVar=NVAR, nConst=NCONST, nOp=NOPS)
+    mutation = MultipleMutations(instruction_mutation, insert_mutation, delete_mutation)
+
     population = random_population(
         population_size=POPULATION_SIZE,
         min_size=MIN_LEN,
@@ -84,6 +90,7 @@ def main():
         fitness_func=fitness_func,
         minimize=True,
         elitism=True,
+        len_punishment=0.01
     )
 
     lgp.add_new_best_callback(update)
