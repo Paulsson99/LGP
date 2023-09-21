@@ -1,6 +1,6 @@
 from tqdm import trange
 import numpy as np
-from typing import Optional, Callable, Self
+from typing import Optional, Callable
 import operator
 
 from ._typing import Chromosome
@@ -58,12 +58,12 @@ class LGP:
 
         # Callbacks
         self.new_best_callback: list[Callable[[Chromosome], None]] = []
-        self.generation_callback: list[Callable[[Self], None]] = []
+        self.generation_callback: list[Callable[[LGP], None]] = []
 
     def add_new_best_callback(self, callback: Callable[[Chromosome], None]) -> None:
         self.new_best_callback.append(callback)
 
-    def add_generation_callback(self, callback: Callable[[Self], None]) -> None:
+    def add_generation_callback(self, callback: Callable[["LGP"], None]) -> None:
         self.generation_callback.append(callback)
 
     def _log(self, fitness: list[float]) -> None:
