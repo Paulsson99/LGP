@@ -12,6 +12,7 @@ def test_fitness_call(mocker):
 
     mocker.patch("LGP.fitness.evaluate", return_value=[0, 0, 0])
 
-    fitness = fitness_func([tuple()] * 3)
+    fitness = fitness_func([tuple()])
 
-    assert fitness == [14, 14, 14]
+    # Assert the average fitness is correct
+    assert fitness == [14 / len(x)]
