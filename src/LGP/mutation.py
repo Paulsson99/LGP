@@ -1,11 +1,54 @@
 from abc import ABC, abstractmethod
 import random
+from typing import Callable, Optional
 
 from LGP._typing import Chromosome, Instruction
 from LGP.population import random_instruction
 
 
+DecayFunction = Callable[[int], float]
+
+
+# Decay functions for the mutation rate
+def linear_decay(pMax: float, pMin: float, rate: float, offset: int = 0) -> DecayFunction:
+    """
+    A linear decay function between pMax and pMin
+    
+    Parameters:
+    - pMax (float):     The maximum mutation probability
+    - pMin (float):     The minimum mutation probability
+    - rate (float):     The rate of decay measured in decay / generation
+    - offset (int):     Delay the decay until this generation
+    
+    Returns:
+    - decay function:   A function that can be called with a generation number to give the corresponding mutation rate
+    """
+    def _linear_decay(generation: int) -> float:
+        if generation < offset:
+            return pMax
+        
+        pMutate = pMax - rate * (generation + 1)
+        if pMutate < pMin:
+            return pMin
+        return pMutate
+    
+    return _linear_decay
+
+
 class MutationBase(ABC):
+
+    def __init__(self, pMutate: float, nVar: int, nConst: int, nOp: int, update_func: Optional[DecayFunction]) -> None:
+        super().__init__()
+        self.pMutate = pMutate
+        self.nVar = nVar
+        self.nConst = nConst
+        self.nTot = nVar + nConst
+        self.nOp = nOp
+
+        if update_func is None:
+            update_func = lambda x: pMutate
+
+        self.update_func = update_func
 
     @abstractmethod
     def mutate(self, chromosome: Chromosome) -> Chromosome:
@@ -23,7 +66,7 @@ class MutationBase(ABC):
         """
         Update the mutation depending on the generation number
         """
-        pass
+        self.pMutate = self.update_func(generation)
 
 
 class InstructionMutation(MutationBase):
@@ -37,13 +80,8 @@ class InstructionMutation(MutationBase):
     - nOp (int):            The number of operators
     """
 
-    def __init__(self, pMutate: float, nVar: int, nConst: int, nOp: int) -> None:
-        super().__init__()
-        self.pMutate = pMutate
-        self.nVar = nVar
-        self.nConst = nConst
-        self.nTot = nVar + nConst
-        self.nOp = nOp
+    def __init__(self, pMutate: float, nVar: int, nConst: int, nOp: int, update_func: Optional[DecayFunction] = None) -> None:
+        super().__init__(pMutate, nVar, nConst, nOp, update_func)
 
     def mutate(self, chromosome: Chromosome) -> Chromosome:
         def _mutate_intruction(intruction: Instruction) -> Instruction:
@@ -58,59 +96,22 @@ class InstructionMutation(MutationBase):
                 return intruction[0], intruction[1], intruction[2], random.randint(0, self.nVar - 1)
             
         return tuple(_mutate_intruction(instruction) if random.random() < self.pMutate else instruction for instruction in chromosome)
-    
-
-class InstuctionMutationDecay(InstructionMutation):
-    """
-    Mutate any instruction on a Chromosome
-
-    Paramters:
-    - pMax (float):             The maximum (start) probability for the mutation rate
-    - pMin (float):             §The minimum probability for the mutation rate
-    - rate (int):               The decay rate (pMutate/generation)
-    - nVar (int):               The number of variable registers
-    - nConst (int):             The number of constant registers
-    - nOp (int):                The number of operators
-    - generation_offset (int):  The generation to start the decay at
-    """
-
-    def __init__(self, pMax: float, pMin: float, rate: float, nVar: int, nConst: int, nOp: int, generation_offset: int = 0) -> None:
-        super().__init__(pMax, nVar, nConst, nOp)
-        self.pMax = pMax
-        self.pMin = pMin
-        self.rate = rate
-        self.generation_offset = generation_offset
-
-    def update(self, generation: int) -> None:
-        if generation < self.generation_offset:
-            return
-        
-        self.pMutate = self.pMax - self.rate * (generation + 1)
-        if self.pMutate < self.pMin:
-            self.pMutate = self.pMin
-
-
 
 
 class InsertMutation(MutationBase):
 
-    def __init__(self, pInsert: float, nVar: int, nConst: int, nOp: int) -> None:
-        super().__init__()
-        self.pInsert = pInsert
-        self.nVar = nVar
-        self.nConst = nConst
-        self.nTot = nVar + nConst
-        self.nOp = nOp
+    def __init__(self, pInsert: float, nVar: int, nConst: int, nOp: int, update_func: Optional[DecayFunction] = None) -> None:
+        super().__init__(pInsert, nVar, nConst, nOp, update_func)
 
     def mutate(self, chromosome: Chromosome) -> Chromosome:
         new_chromosome = []
         for instruction in chromosome:
-            if random.random() < self.pInsert:
+            if random.random() < self.pMutate:
                 new_chromosome.append(random_instruction(self.nVar, self.nConst, self.nOp))
             new_chromosome.append(instruction)
 
         # Insert at the end
-        if random.random() < self.pInsert:
+        if random.random() < self.pMutate:
             new_chromosome.append(random_instruction(self.nVar, self.nConst, self.nOp))
         
         return tuple(new_chromosome)
@@ -118,31 +119,14 @@ class InsertMutation(MutationBase):
 
 class DeleteMutation(MutationBase):
 
-    def __init__(self, pDelete: float, nVar: int, nConst: int, nOp: int) -> None:
-        super().__init__()
-        self.pDelete = pDelete
-        self.nVar = nVar
-        self.nConst = nConst
-        self.nTot = nVar + nConst
-        self.nOp = nOp
+    def __init__(self, pDelete: float, nVar: int, nConst: int, nOp: int, update_func: Optional[DecayFunction] = None) -> None:
+        super().__init__(pDelete, nVar, nConst, nOp, update_func)
 
     def mutate(self, chromosome: Chromosome) -> Chromosome:
         new_chromosome = []
         for instruction in chromosome:
-            if random.random() < self.pDelete:
+            if random.random() < self.pMutate:
                 continue
             new_chromosome.append(instruction)
 
         return tuple(new_chromosome)
-
-
-class MultipleMutations(MutationBase):
-
-    def __init__(self, *mutations: MutationBase) -> None:
-        super().__init__()
-        self.mutations = mutations
-    
-    def mutate(self, chromosome: Chromosome) -> Chromosome:
-        for mutation in self.mutations:
-            chromosome = mutation.mutate(chromosome)
-        return chromosome

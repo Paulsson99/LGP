@@ -5,7 +5,7 @@ from LGP.LGP import LGP
 from LGP.fitness import MimicTrainingData
 from LGP.selection import TournamentSelection
 from LGP.crossover import TwoPointCrossover
-from LGP.mutation import InstructionMutation, InsertMutation, DeleteMutation, MultipleMutations
+from LGP.mutation import InstructionMutation, InsertMutation, DeleteMutation, linear_decay
 from LGP.evaluation import Operators, evaluate
 from LGP.population import random_population
 from LGP._typing import Chromosome
@@ -30,9 +30,14 @@ GENERATIONS = 3000
 pTour = 0.8
 tournament_size = 4
 pCross = 0.6
-pMutate = 0.07
-pInsert = 0.02
-pDelete = 0.02
+pMutate = 0.7
+pInsert = 0.05
+pDelete = 0.05
+
+
+instruction_decay = linear_decay(pMutate, 0.01, pMutate / 500, offset=25)
+insertion_decay = linear_decay(pInsert, 0.01, pInsert / 500, offset=25)
+deletion_decay = linear_decay(pDelete, 0.01, pDelete / 500, offset=25)
 
 
 # Create the training data
@@ -56,10 +61,12 @@ def main():
     fitness_func = MimicTrainingData(x, y, nVar=NVAR, constReg=CONST_REG, operators=OPS)
     selection = TournamentSelection(pTour=pTour, size=tournament_size)
     crossover = TwoPointCrossover(pCross=pCross, max_length=2 * MAX_LEN)
-    instruction_mutation = InstructionMutation(pMutate=pMutate, nVar=NVAR, nConst=NCONST, nOp=NOPS)
-    insert_mutation = InsertMutation(pInsert=pInsert, nVar=NVAR, nConst=NCONST, nOp=NOPS)
-    delete_mutation = DeleteMutation(pDelete=pDelete, nVar=NVAR, nConst=NCONST, nOp=NOPS)
-    mutation = MultipleMutations(instruction_mutation, insert_mutation, delete_mutation)
+
+    # Mutation
+    instruction_mutation = InstructionMutation(pMutate=pMutate, nVar=NVAR, nConst=NCONST, nOp=NOPS, update_func=instruction_decay)
+    insert_mutation = InsertMutation(pInsert=pInsert, nVar=NVAR, nConst=NCONST, nOp=NOPS, update_func=insertion_decay)
+    delete_mutation = DeleteMutation(pDelete=pDelete, nVar=NVAR, nConst=NCONST, nOp=NOPS, update_func=deletion_decay)
+    mutations = [instruction_mutation, insert_mutation, delete_mutation]
 
     population = random_population(
         population_size=POPULATION_SIZE,
@@ -86,7 +93,7 @@ def main():
         population=population,
         selection_method=selection,
         crossover_method=crossover,
-        mutation_method=mutation,
+        mutation_method=mutations,
         fitness_func=fitness_func,
         minimize=True,
         elitism=True,

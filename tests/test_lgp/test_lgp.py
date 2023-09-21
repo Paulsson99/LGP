@@ -9,6 +9,9 @@ from LGP.fitness import FitnessBase
 
 
 class NoMutation(MutationBase):
+    def __init__(self) -> None:
+        super().__init__(0, 0, 0, 0, None)
+
     def mutate(self, chromosome: Chromosome) -> Chromosome:
         return chromosome
 

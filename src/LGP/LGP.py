@@ -30,7 +30,7 @@ class LGP:
             population: list[Chromosome], 
             selection_method: SelectionBase,
             crossover_method: CrossoverBase,
-            mutation_method: MutationBase,
+            mutation_method: MutationBase | list[MutationBase],
             fitness_func: FitnessBase,
             minimize: bool = False,
             elitism: bool = False,
@@ -39,7 +39,7 @@ class LGP:
         self.population = population
         self.selection_method = selection_method
         self.crossover_method = crossover_method
-        self.mutation_method = mutation_method
+        self.mutation_method = mutation_method if isinstance(mutation_method, list) else [mutation_method]
         self.fitness_func = fitness_func
         self.minimize = minimize
         self.elitism = elitism
@@ -92,6 +92,11 @@ class LGP:
         self.avg_fitness_log.append(avg_fitness)
         self.best_fitness_log.append(self.best_fitness)
 
+    def _mutate(self, chromosome: Chromosome) -> Chromosome:
+        for mutation in self.mutation_method:
+            chromosome = mutation.mutate(chromosome)
+        return chromosome
+
     def run(self, generations: int) -> Chromosome:
         pbar = trange(generations, desc="Best fitness: ???")
 
@@ -104,9 +109,9 @@ class LGP:
 
             if self.elitism:
                 self.population.append(self.all_time_best_individual)
-                self.population.append(self.mutation_method.mutate(self.all_time_best_individual))
+                self.population.append(self._mutate(self.all_time_best_individual))
                 self.population.append(self.best_individual)
-                self.population.append(self.mutation_method.mutate(self.best_individual))
+                self.population.append(self._mutate(self.best_individual))
 
             # Negate the fitness if minimize is true
             if self.minimize:
@@ -127,8 +132,8 @@ class LGP:
                 offspring1, offspring2 = self.crossover_method.crossover(parent1, parent2)
                 
                 # Mutate offspring
-                offspring1 = self.mutation_method.mutate(offspring1)
-                offspring2 = self.mutation_method.mutate(offspring2)
+                offspring1 = self._mutate(offspring1)
+                offspring2 = self._mutate(offspring2)
 
                 # Add to the new population
                 new_population.append(offspring1)
