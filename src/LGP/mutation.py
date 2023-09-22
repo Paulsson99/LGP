@@ -100,10 +100,14 @@ class InstructionMutation(MutationBase):
 
 class InsertMutation(MutationBase):
 
-    def __init__(self, pInsert: float, nVar: int, nConst: int, nOp: int, update_func: Optional[DecayFunction] = None) -> None:
+    def __init__(self, pInsert: float, nVar: int, nConst: int, nOp: int, update_func: Optional[DecayFunction] = None, max_len: Optional[int] = None) -> None:
         super().__init__(pInsert, nVar, nConst, nOp, update_func)
+        self.max_len = max_len
 
     def mutate(self, chromosome: Chromosome) -> Chromosome:
+        if self.max_len is not None and len(chromosome) > self.max_len:
+            return chromosome
+        
         new_chromosome = []
         for instruction in chromosome:
             if random.random() < self.pMutate:
@@ -119,10 +123,14 @@ class InsertMutation(MutationBase):
 
 class DeleteMutation(MutationBase):
 
-    def __init__(self, pDelete: float, nVar: int, nConst: int, nOp: int, update_func: Optional[DecayFunction] = None) -> None:
+    def __init__(self, pDelete: float, nVar: int, nConst: int, nOp: int, update_func: Optional[DecayFunction] = None, min_len: Optional[int] = None) -> None:
         super().__init__(pDelete, nVar, nConst, nOp, update_func)
+        self.min_len = min_len
 
     def mutate(self, chromosome: Chromosome) -> Chromosome:
+        if self.min_len is not None and len(chromosome) < self.min_len:
+            return chromosome
+        
         new_chromosome = []
         for instruction in chromosome:
             if random.random() < self.pMutate:
