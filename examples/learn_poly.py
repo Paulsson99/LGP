@@ -25,7 +25,7 @@ POPULATION_SIZE = 500
 MIN_LEN = 10
 MAX_LEN = 100
 
-GENERATIONS = 3000
+GENERATIONS = 50
 
 pTour = 0.8
 tournament_size = 4
@@ -103,6 +103,8 @@ def main():
     lgp.add_new_best_callback(update)
 
     lgp.run(GENERATIONS)
+
+    lgp.save_run("poly-run.json")
 
 
 if __name__ == '__main__':

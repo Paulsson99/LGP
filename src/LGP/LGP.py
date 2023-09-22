@@ -2,6 +2,7 @@ from tqdm import trange
 import numpy as np
 from typing import Optional, Callable
 import operator
+import json
 
 from ._typing import Chromosome
 from LGP.selection import SelectionBase
@@ -96,6 +97,18 @@ class LGP:
         for mutation in self.mutation_method:
             chromosome = mutation.mutate(chromosome)
         return chromosome
+    
+    def save_run(self, filename: str) -> None:
+        """
+        Save all the information about the run
+        """
+        save_dict = {
+            "best-fitness": self.best_fitness_log,
+            "avg-fitness": self.avg_fitness_log,
+            "chromosome": self.best_individual,
+        }
+        with open(filename, 'w') as f:
+            json.dump(save_dict, f)
 
     def run(self, generations: int) -> Chromosome:
         pbar = trange(generations, desc="Best fitness: ???")
